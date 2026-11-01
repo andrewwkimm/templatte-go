@@ -1,0 +1,58 @@
+# Requires Settings > Actions > General > "Allow GitHub Actions to create and approve pull requests".
+# Pull requests opened with GITHUB_TOKEN do not trigger CI; close and reopen the pull request to run it.
+name: Go update
+
+on:
+  schedule:
+    - cron: "23 7 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    timeout-minutes: 15
+
+    runs-on: ubuntu-latest
+
+    env:
+      GOTOOLCHAIN: auto
+
+    steps:
+
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      # The go line names the .0 release of the latest minor version, so
+      # importers need only that minor version; the toolchain line pins the latest patch.
+      - name: Move go.mod to the latest Go release
+        run: |
+          latest=$(go list -m -f '{{.Version}}' go@latest)
+          go get "go@${latest%.*}.0" "toolchain@go${latest}"
+          go mod tidy
+          git diff --quiet || git commit -am "Update Go to ${latest}"
+
+      - name: Apply go fix modernizations
+        run: |
+          make fix
+          git diff --quiet || git commit -am "Apply go fix modernizations"
+
+      - name: Open pull request
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          branch: go-update
+          title: Update Go to the latest release
+          body: Moves `go.mod` to the latest Go release, then applies `go fix` in a separate commit.
+          delete-branch: true

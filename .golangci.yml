@@ -1,0 +1,131 @@
+# golangci-lint v2 config for Go library packages.
+version: "2"
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  uniq-by-line: false
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/andrewwkimm/templatte-go
+
+linters:
+  default: standard # errcheck, govet, ineffassign, staticcheck, unused
+  enable:
+    # Correctness
+    - bodyclose
+    - durationcheck
+    - errorlint
+    - exhaustive
+    - fatcontext
+    - makezero
+    - musttag
+    - nilerr
+    - nilnesserr
+    - nilnil
+    - noctx
+    - reassign
+    - recvcheck
+    - unparam
+    - wastedassign
+    # Security
+    - gosec
+    # Public API hygiene and doc comments
+    - embeddedstructfieldcheck
+    - errname
+    - gochecknoinits
+    - godoclint
+    - godot
+    - gomoddirectives
+    - nakedret
+    - predeclared
+    - revive
+    # Modern Go idioms
+    - exptostd
+    - modernize
+    - perfsprint
+    - unconvert
+    - usestdlibvars
+    - usetesting
+    # Tests
+    - testableexamples
+    - testifylint
+    - testpackage # black-box tests; *_internal_test.go and export_test.go are the escape hatches
+    - thelper
+    - tparallel
+    # Complexity, style, and directives
+    - gocritic
+    - gocyclo
+    - misspell
+    - nolintlint
+    - sloglint
+  settings:
+    embeddedstructfieldcheck:
+      forbid-mutex: true
+    errcheck:
+      # Report single-value type assertions, which panic on the wrong type.
+      check-type-assertions: true
+      # Closing a read-only body cannot lose data; Close on written files and Flush stay checked.
+      exclude-functions:
+        - (io.ReadCloser).Close
+    exhaustive:
+      default-signifies-exhaustive: true
+    gocyclo:
+      min-complexity: 15
+    godoclint:
+      default: basic
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment
+    misspell:
+      locale: US
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+    revive:
+      # Configuring any rule replaces revive's defaults unless this is set.
+      enable-default-rules: true
+      rules:
+        # os.Exit and log.Fatal belong only in main.
+        - name: deep-exit
+        # Interface implementations and callbacks legitimately ignore parameters.
+        - name: unused-parameter
+          disabled: true
+        # Rejects catchall names: util, common, misc, types, interfaces, helpers, models, shared, api.
+        - name: package-naming
+          arguments:
+            - check-extra-bad-name: true
+    sloglint:
+      # A library takes a *slog.Logger; it never writes to the global logger.
+      no-global: all
+      no-mixed-args: true
+    usetesting:
+      context-background: true
+      context-todo: true
+
+    # Add only when a concrete boundary exists (see AGENTS.md).
+    # depguard:
+    #   rules:
+    #     pure-core:
+    #       files: ["**/policy/*.go", "!$test"]
+    #       deny:
+    #         - pkg: net/http
+    #           desc: policy is the deterministic core; pass data in instead
+
+  exclusions:
+    # `comments` is omitted so missing doc comments are reported, and
+    # `std-error-handling` so unchecked Close and Flush errors are reported.
+    presets:
+      - common-false-positives
+    rules:
+      - path: _test\.go
+        linters:
+          - gosec
+          - unparam

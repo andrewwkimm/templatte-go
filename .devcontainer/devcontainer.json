@@ -1,0 +1,32 @@
+{
+  "name": "Go",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.formatOnSave": true,
+        "files.insertFinalNewline": true,
+        "files.trimTrailingWhitespace": true,
+        "go.lintTool": "golangci-lint-v2"
+      },
+      "extensions": [
+        "anthropic.claude-code",
+        "github.vscode-github-actions",
+        "golang.go",
+        "redhat.vscode-yaml",
+        "sst-dev.opencode"
+      ]
+    }
+  },
+  "containerEnv": {
+    "GOTOOLCHAIN": "auto"
+  },
+  "remoteEnv": {
+    "PATH": "${containerWorkspaceFolder}/bin:${containerEnv:PATH}"
+  },
+  "remoteUser": "root",
+  "postCreateCommand": "make setup"
+}

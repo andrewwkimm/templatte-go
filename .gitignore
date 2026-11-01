@@ -1,0 +1,11 @@
+# Absolute paths
+/.env
+/bin
+/coverage.out
+
+# Patterns
+*.test
+.claude
+.DS_Store
+go.work
+go.work.sum

@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "gopls": {
+      "type": "stdio",
+      "command": "${workspaceFolder}/bin/gopls",
+      "args": ["mcp"]
+    }
+  }
+}
